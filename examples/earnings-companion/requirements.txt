@@ -1,0 +1,2 @@
+anthropic>=0.117.0        # MCP connector (mcp_servers / mcp_toolset); verified on 0.117.0
+python-dotenv>=1.0.0      # optional; enables the .env convenience (see README)
