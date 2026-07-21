@@ -6,7 +6,7 @@ of the ~70-tool catalog. They're reference recipes: fork one and make it yours.
 
 | Example | What it does |
 |---|---|
-| [due-diligence-agent](due-diligence-agent/) | Turns a ticker into a structured research memo — analyst consensus, Smart Score, financials, technicals, bull/bear case, smart-money signals. |
+| [due-diligence-agent](due-diligence-agent/) | Turns a ticker into a structured research memo — analyst consensus, Smart Score, financials, technicals, bull/bear case, smart-money signals. *(Python + [TypeScript](due-diligence-agent/typescript/).)* |
 | [earnings-companion](earnings-companion/) | Turns a ticker into an earnings brief — next report date & expectations, beat/miss track record, last-call recap, and analyst posture into the print. |
 | [smart-money-screener](smart-money-screener/) | Surfaces a ranked shortlist of ideas the smart money is favoring — cross-checking top Smart-Score names, trending stocks, and hedge-fund/insider buying. |
 
