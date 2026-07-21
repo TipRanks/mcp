@@ -27,6 +27,16 @@ import sys
 
 import anthropic
 
+# Optional: load a local .env (from `cp .env.example .env`) if python-dotenv is
+# installed. Exporting the vars in your shell works too — this just adds the
+# .env convenience without making it a hard dependency.
+try:
+    from dotenv import load_dotenv
+
+    load_dotenv()
+except ImportError:
+    pass
+
 MCP_URL = "https://mcp.tipranks.com/mcp/"
 DEFAULT_MODEL = "claude-opus-4-8"   # swap to "claude-sonnet-5" for lower cost
 MAX_TURNS = 12                      # cap the server-side tool loop (pause_turn resumes)
