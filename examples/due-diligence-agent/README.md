@@ -1,29 +1,30 @@
 # Due-Diligence Agent
 
-A ~90-line Python agent that turns a ticker into a structured research memo, using
-the hosted [TipRanks MCP server](https://mcp.tipranks.com/) for all its data.
+A compact Python agent (~110 lines) that turns a ticker into a structured research
+memo, using the hosted [TipRanks MCP server](https://mcp.tipranks.com/) for all its data.
 
 You give it a ticker; Claude connects to the TipRanks connector and decides which
-tools to call — analyst consensus & price target, Smart Score, financials,
-technical picture, bull/bear summary, insider and hedge-fund activity, upcoming
-catalysts — then writes an eight-section memo. The MCP connection runs **server-side
-on Anthropic's infrastructure**, so there's no tool-execution loop to maintain: you
-pass the connector once and Claude orchestrates the calls.
+tools to call — analyst consensus & price target, Smart Score, financials, technical
+picture, bull/bear summary — then writes an eight-section memo. The MCP connection
+runs **server-side on Anthropic's infrastructure**, so there's no tool-execution loop
+to maintain: you pass the connector once and Claude orchestrates the calls, and the
+tool results come back inside the same response.
 
 ```
 $ python due_diligence_agent.py NVDA
-Researching NVDA …
-
+Researching NVDA — Claude is calling TipRanks tools:
   → tipranks.get_assets_data
-  → tipranks.get_recent_analyst_ratings
   → tipranks.get_financials
   → tipranks.get_technical_analysis
   → tipranks.get_bulls_bears_summary
-  → tipranks.get_hedge_fund_activity
 
-# NVIDIA (NVDA) — Due-Diligence Memo
-1. Snapshot — …
-…
+# Due-Diligence Memo — NVIDIA Corp. (NVDA)
+## 1. Snapshot
+- Price: $203.28 | Market cap: ~$4.91T | Smart Score: 8/10
+## 2. Analyst View
+- Consensus: Strong Buy · avg price target $309.94 → implied ~+52% upside
+… (fundamentals, technicals, bull/bear, smart money, catalysts, bottom line) …
+
 Informational only — not investment advice.
 ```
 
@@ -61,7 +62,7 @@ Informational only — not investment advice.
 The whole integration is one Messages API call with the connector attached:
 
 ```python
-client.beta.messages.stream(
+resp = client.beta.messages.create(
     model="claude-opus-4-8",
     max_tokens=8000,
     betas=["mcp-client-2025-11-20"],
@@ -77,16 +78,19 @@ client.beta.messages.stream(
 )
 ```
 
-Anthropic makes the MCP connection on the server side, exposes every TipRanks tool
-to the model, and runs the tool loop for you. The script only needs to (a) stream
-the output and (b) resume if the server-side tool loop pauses (`stop_reason ==
-"pause_turn"`). See [`due_diligence_agent.py`](due_diligence_agent.py).
+Anthropic makes the MCP connection on the server side, exposes every TipRanks tool to
+the model, runs the tool loop, and returns the `mcp_tool_use` / `mcp_tool_result`
+blocks and the final memo in `resp.content`. The script only (a) prints the tools the
+model called and the memo, and (b) resumes if a long tool loop pauses (`stop_reason
+== "pause_turn"`). See [`due_diligence_agent.py`](due_diligence_agent.py).
 
 ## Notes
 
-- **Rate limits.** The free tier allows 50 tool calls/month. A single memo makes
-  several tool calls, so heavy use will hit the cap — upgrade at
-  [/dev/billing](https://mcp.tipranks.com/dev/billing) for more headroom.
+- **Rate limits.** The free tier allows **5 tool calls/minute** and 50/month. This
+  agent is deliberately tuned to ~4 focused calls per memo so it runs on a free key;
+  a burstier or higher-volume agent will hit the per-minute limit (the script prints a
+  hint if it does). Upgrade at [/dev/billing](https://mcp.tipranks.com/dev/billing) —
+  Smart raises it to 30/minute and 1,000/month — for heavier use.
 - **Model.** Defaults to `claude-opus-4-8`; pass `--model claude-sonnet-5` for a
   cheaper run.
 - **Informational only.** TipRanks provides market data and analyst research for

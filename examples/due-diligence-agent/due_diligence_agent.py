@@ -8,7 +8,8 @@ summary, insider and hedge-fund activity, upcoming catalysts — then writes the
 
 The MCP connection runs server-side on Anthropic's infrastructure via the Messages
 API `mcp_servers` connector, so there is no tool-execution loop to maintain here:
-you pass the connector once and Claude orchestrates the calls.
+you pass the connector once and Claude orchestrates the calls, and the tool results
+come back inside the same response.
 
 Usage:
     export ANTHROPIC_API_KEY=sk-ant-...
@@ -25,6 +26,14 @@ import argparse
 import os
 import sys
 
+# UTF-8 output so the memo's punctuation (em-dashes, arrows) renders on any
+# console, including Windows (cp1252 by default).
+try:
+    sys.stdout.reconfigure(encoding="utf-8")
+    sys.stderr.reconfigure(encoding="utf-8")
+except Exception:  # pragma: no cover - older/odd stdout
+    pass
+
 import anthropic
 
 # Optional: load a local .env (from `cp .env.example .env`) if python-dotenv is
@@ -39,16 +48,19 @@ except ImportError:
 
 MCP_URL = "https://mcp.tipranks.com/mcp/"
 DEFAULT_MODEL = "claude-opus-4-8"   # swap to "claude-sonnet-5" for lower cost
-MAX_TURNS = 12                      # cap the server-side tool loop (pause_turn resumes)
+MAX_TURNS = 8                       # cap: a paused server-side tool loop resumes
 
 SYSTEM_PROMPT = """You are an equity research analyst writing a due-diligence memo \
 for a professional investor. You have live TipRanks data available through tools.
 
-Gather what you need before writing — use the tools to pull the current snapshot \
-and metrics, company financials, the technical picture, the Wall Street analyst \
-consensus and price target, the bull and bear case, insider and hedge-fund \
-activity, and any upcoming catalysts. Call several tools; a good memo triangulates \
-across fundamentals, technicals, sentiment, and positioning.
+Gather efficiently, then write. Be economical with tool calls — the free API tier \
+allows only 5 calls/minute, so a focused memo beats an exhaustive one. Lead with \
+`get_assets_data`, which returns the analyst consensus, average price target, Smart \
+Score, key fundamentals, 52-week range, and next earnings date in a single call. \
+Then add a few targeted calls — `get_financials` for the revenue/earnings trend, \
+`get_technical_analysis` for the technical read, `get_bulls_bears_summary` for the \
+two-sided case, and at most one positioning signal (insider or hedge-fund activity). \
+**Call each tool at most once, aim for about 4 tools total, and never exceed 5.**
 
 Then write a concise, decision-useful memo with these sections:
   1. Snapshot — price, market cap, sector, TipRanks Smart Score.
@@ -83,43 +95,53 @@ def run(ticker: str, model: str) -> None:
 
     messages = [{"role": "user", "content": build_user_prompt(ticker)}]
 
-    print(f"Researching {ticker.upper()} …\n", file=sys.stderr)
+    print(f"Researching {ticker.upper()} — Claude is calling TipRanks tools:",
+          file=sys.stderr)
+    resp = None
     for _ in range(MAX_TURNS):
-        with client.beta.messages.stream(
-            model=model,
-            max_tokens=8000,
-            betas=["mcp-client-2025-11-20"],
-            thinking={"type": "adaptive"},
-            system=SYSTEM_PROMPT,
-            # The hosted TipRanks connector. Anthropic makes the MCP connection
-            # server-side; the API key is sent as `Authorization: Bearer <key>`.
-            mcp_servers=[{
-                "type": "url",
-                "url": MCP_URL,
-                "name": "tipranks",
-                "authorization_token": mcp_key,
-            }],
-            # Expose every TipRanks tool; Claude picks which ones to call.
-            tools=[{"type": "mcp_toolset", "mcp_server_name": "tipranks"}],
-            messages=messages,
-        ) as stream:
-            for event in stream:
-                if event.type == "content_block_start":
-                    block = event.content_block
-                    # Surface each TipRanks tool call as it happens (nice for demos).
-                    if block.type == "mcp_tool_use":
-                        print(f"  → tipranks.{getattr(block, 'name', '?')}",
-                              file=sys.stderr)
-                elif event.type == "content_block_delta" and event.delta.type == "text_delta":
-                    print(event.delta.text, end="", flush=True)
-            final = stream.get_final_message()
-
-        messages.append({"role": "assistant", "content": final.content})
-        # A server-side tool loop can pause; re-send to resume (no new user turn).
-        if final.stop_reason != "pause_turn":
+        try:
+            resp = client.beta.messages.create(
+                model=model,
+                max_tokens=8000,
+                betas=["mcp-client-2025-11-20"],
+                thinking={"type": "adaptive"},
+                system=SYSTEM_PROMPT,
+                # The hosted TipRanks connector. Anthropic makes the MCP connection
+                # server-side; the API key is sent as `Authorization: Bearer <key>`.
+                mcp_servers=[{
+                    "type": "url",
+                    "url": MCP_URL,
+                    "name": "tipranks",
+                    "authorization_token": mcp_key,
+                }],
+                # Expose every TipRanks tool; Claude picks which ones to call.
+                tools=[{"type": "mcp_toolset", "mcp_server_name": "tipranks"}],
+                messages=messages,
+            )
+        except anthropic.BadRequestError as e:
+            # The connector returns a 400 "Error while communicating with MCP
+            # server" when a downstream tool call fails — most commonly the
+            # free tier's 5-calls/minute rate limit tripping on a burst.
+            sys.exit(
+                f"\nMCP request failed: {e}\n"
+                "If this is a rate limit, the free tier allows 5 tool calls/minute — "
+                "wait a minute and retry, or upgrade at https://mcp.tipranks.com/dev/billing."
+            )
+        # Surface each TipRanks tool the model called this turn.
+        for block in resp.content:
+            if block.type == "mcp_tool_use":
+                print(f"  → tipranks.{block.name}", file=sys.stderr)
+        messages.append({"role": "assistant", "content": resp.content})
+        # A big server-side tool loop can pause; resume until it finishes.
+        if resp.stop_reason != "pause_turn":
             break
 
-    print()  # trailing newline after the streamed memo
+    # The memo is the text the model wrote after its last tool call.
+    blocks = resp.content if resp else []
+    cut = max((i for i, b in enumerate(blocks)
+               if b.type in ("mcp_tool_use", "mcp_tool_result")), default=-1)
+    memo = "".join(b.text for b in blocks[cut + 1:] if b.type == "text").strip()
+    print("\n" + (memo or "(no memo was produced — try re-running)") + "\n")
 
 
 def main() -> None:
