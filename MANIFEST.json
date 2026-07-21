@@ -1,0 +1,75 @@
+{
+  "manifest_version": "0.3",
+  "name": "tipranks",
+  "display_name": "TipRanks",
+  "version": "1.2.0",
+  "description": "Live financial data from TipRanks: analyst ratings, Smart Score, technicals, options, insider and hedge-fund activity, ETFs, commodities, forex, crypto — plus access to your own TipRanks portfolios.",
+  "short_description": "Analyst ratings, Smart Score, options, insider activity, and your TipRanks portfolios.",
+  "category": "finance",
+  "tags": [
+    "stocks",
+    "investing",
+    "analyst-ratings",
+    "portfolio",
+    "technicals",
+    "options",
+    "insider-trading",
+    "hedge-funds",
+    "etfs",
+    "commodities",
+    "forex",
+    "crypto"
+  ],
+  "author": {
+    "name": "TipRanks",
+    "url": "https://www.tipranks.com",
+    "email": "support@tipranks.com"
+  },
+  "publisher": {
+    "name": "TipRanks",
+    "url": "https://www.tipranks.com",
+    "support_url": "https://www.tipranks.com/contact"
+  },
+  "license": "Proprietary",
+  "logo_url": "https://tr-cdn.tipranks.com/static/v2/static/images/logo/tipranks/black-trust.svg",
+  "homepage_url": "https://www.tipranks.com",
+  "privacy_policies": [
+    "https://mcp.tipranks.com/privacy",
+    "https://www.tipranks.com/privacypolicy"
+  ],
+  "privacy_policy_url": "https://mcp.tipranks.com/privacy",
+  "terms_of_service_url": "https://mcp.tipranks.com/terms",
+  "mcp": {
+    "transport": "streamable-http",
+    "url": "https://mcp.tipranks.com/mcp/",
+    "auth": {
+      "type": "oauth2",
+      "authorization_server_metadata_url": "https://mcp.tipranks.com/.well-known/oauth-authorization-server",
+      "protected_resource_metadata_url": "https://mcp.tipranks.com/.well-known/oauth-protected-resource",
+      "supports_dynamic_client_registration": true,
+      "code_challenge_methods": ["S256"]
+    },
+    "scopes": [
+      {
+        "name": "tipranks:read",
+        "default": true,
+        "description": "Read TipRanks market data: analyst ratings, Smart Score, technicals, news, screening, ETFs, commodities, forex, crypto."
+      },
+      {
+        "name": "tipranks:portfolio",
+        "default": false,
+        "description": "Read your TipRanks portfolios: holdings, performance, allocation. Limited to portfolios you own at the time you authorize."
+      }
+    ],
+    "rate_limits": {
+      "free": "10 tool calls / month",
+      "premium": "100 tool calls / month",
+      "ultimate": "200 tool calls / month",
+      "reset": "1st of each month UTC"
+    }
+  },
+  "requirements": {
+    "account_required": true,
+    "account_signup_url": "https://www.tipranks.com/sign-up"
+  }
+}
