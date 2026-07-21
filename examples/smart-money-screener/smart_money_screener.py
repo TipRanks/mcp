@@ -49,9 +49,11 @@ allows 10 calls/minute, so lean on the screening tools rather than drilling into
 every name. Use the discovery tools to build a candidate set: `get_top_smart_score_stocks` \
 (TipRanks' composite winners), `get_trending_stocks` (what's drawing attention), \
 `get_hedge_fund_activity` and `get_insider_transactions` (where the smart money is \
-buying). You may add `get_top_rated_stocks` for the analyst-consensus angle. **Call \
-each tool at most once, aim for about 5 tools total, and never exceed 6. Do NOT fetch \
-per-ticker detail for every candidate** — synthesize from what the screens return.
+buying). You may add `get_top_rated_stocks` for the analyst-consensus angle. **Use \
+ONLY these screening/list tools. Do NOT call per-ticker tools such as `get_assets_data`, \
+`get_financials`, `get_stock_quotes`, or `get_recent_analyst_ratings` — synthesize \
+entirely from what the screens return. Call each tool at most once, aim for about 5 \
+tools total, and never exceed 6.**
 
 Then write a ranked shortlist of the {count} strongest ideas where multiple smart-money \
 signals line up. Format each idea as:
