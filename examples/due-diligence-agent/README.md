@@ -3,6 +3,8 @@
 A compact Python agent (~110 lines) that turns a ticker into a structured research
 memo, using the hosted [TipRanks MCP server](https://mcp.tipranks.com/) for all its data.
 
+> **Also available in TypeScript** — same agent, same connector, in [`typescript/`](typescript/).
+
 You give it a ticker; Claude connects to the TipRanks connector and decides which
 tools to call — analyst consensus & price target, Smart Score, financials, technical
 picture, bull/bear summary — then writes an eight-section memo. The MCP connection

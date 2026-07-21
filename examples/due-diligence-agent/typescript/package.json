@@ -1,0 +1,19 @@
+{
+  "name": "tipranks-mcp-due-diligence-agent-ts",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "TypeScript sample agent: a single-stock due-diligence memo via the TipRanks MCP connector.",
+  "scripts": {
+    "start": "tsx due-diligence-agent.ts"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.112.4",
+    "dotenv": "^17.4.2"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.1",
+    "tsx": "^4.23.1",
+    "typescript": "^5.6.0"
+  }
+}
