@@ -70,6 +70,19 @@ The connector is **read-only** end to end — every tool is annotated `readOnlyH
 
 ---
 
+## Examples
+
+Runnable sample agents that build on the connector live in [`examples/`](examples/):
+
+- **[due-diligence-agent](examples/due-diligence-agent/)** — turns a ticker into a
+  structured research memo (analyst consensus, Smart Score, financials, technicals,
+  bull/bear case, smart-money signals). Compact Python; the model calls the
+  TipRanks tools autonomously through the MCP connector.
+
+Get an API key at [mcp.tipranks.com/dev/signup](https://mcp.tipranks.com/dev/signup) to run them.
+
+---
+
 ## Privacy Policy
 
 See **https://mcp.tipranks.com/privacy**. In brief: OAuth tokens and API keys are stored only as SHA-256 hashes (no plaintext credentials at rest); the connector reads TipRanks and market data on your behalf and does not sell personal data. Contact: support@tipranks.com.
@@ -82,4 +95,4 @@ See **https://mcp.tipranks.com/privacy**. In brief: OAuth tokens and API keys ar
 
 ---
 
-*© TipRanks. This repository contains the public connector descriptor and documentation for the hosted TipRanks MCP service. It does not contain the server implementation.*
+*© TipRanks. This repository contains the public connector descriptor, documentation, and example code for the hosted TipRanks MCP service. It does not contain the server implementation.*
