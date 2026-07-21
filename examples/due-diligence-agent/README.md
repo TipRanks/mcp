@@ -86,10 +86,10 @@ model called and the memo, and (b) resumes if a long tool loop pauses (`stop_rea
 
 ## Notes
 
-- **Rate limits.** The free tier allows **5 tool calls/minute** and 50/month. This
-  agent is deliberately tuned to ~4 focused calls per memo so it runs on a free key;
-  a burstier or higher-volume agent will hit the per-minute limit (the script prints a
-  hint if it does). Upgrade at [/dev/billing](https://mcp.tipranks.com/dev/billing) —
+- **Rate limits.** The free tier allows **10 tool calls/minute** and 50/month. This
+  agent is tuned to ~4 focused calls per memo, so it stays comfortably within the
+  free key; a much burstier or higher-volume agent will hit the per-minute limit (the
+  script prints a hint if it does). Upgrade at [/dev/billing](https://mcp.tipranks.com/dev/billing) —
   Smart raises it to 30/minute and 1,000/month — for heavier use.
 - **Model.** Defaults to `claude-opus-4-8`; pass `--model claude-sonnet-5` for a
   cheaper run.

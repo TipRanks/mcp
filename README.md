@@ -76,10 +76,16 @@ Runnable sample agents that build on the connector live in [`examples/`](example
 
 - **[due-diligence-agent](examples/due-diligence-agent/)** — turns a ticker into a
   structured research memo (analyst consensus, Smart Score, financials, technicals,
-  bull/bear case, smart-money signals). Compact Python; the model calls the
-  TipRanks tools autonomously through the MCP connector.
+  bull/bear case, smart-money signals).
+- **[earnings-companion](examples/earnings-companion/)** — turns a ticker into an
+  earnings brief (next report & expectations, beat/miss track record, last-call recap,
+  analyst posture into the print).
+- **[smart-money-screener](examples/smart-money-screener/)** — surfaces a ranked
+  shortlist of ideas the smart money is favoring (top Smart-Score names, trending
+  stocks, hedge-fund/insider buying).
 
-Get an API key at [mcp.tipranks.com/dev/signup](https://mcp.tipranks.com/dev/signup) to run them.
+Each is compact Python; the model calls the TipRanks tools autonomously through the MCP
+connector. Get an API key at [mcp.tipranks.com/dev/signup](https://mcp.tipranks.com/dev/signup) to run them.
 
 ---
 
